@@ -1,13 +1,12 @@
 import { useState } from "react";
+import { NavLink, Routes, Route } from "react-router-dom";
 import ConfigEditor from "./ConfigEditor";
 import { Dashboard } from "./Dashboard";
-
-/** Type simple pour le menu */
-type NavKey = "dashboard" | "config" | "logs" | "about";
+import LogsStub from "./LogsStub";
+import AboutStub from "./AboutStub";
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [active, setActive] = useState<NavKey>("dashboard");
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
@@ -49,30 +48,63 @@ export default function App() {
               </div>
 
               <nav className="p-2 space-y-1">
-                <NavItem
-                  label="Tableau de bord"
-                  active={active === "dashboard"}
-                  onClick={() => setActive("dashboard")}
-                  icon="🏠"
-                />
-                <NavItem
-                  label="Éditeur de configuration"
-                  active={active === "config"}
-                  onClick={() => setActive("config")}
-                  icon="🛠️"
-                />
-                <NavItem
-                  label="Journaux"
-                  active={active === "logs"}
-                  onClick={() => setActive("logs")}
-                  icon="📜"
-                />
-                <NavItem
-                  label="À propos"
-                  active={active === "about"}
-                  onClick={() => setActive("about")}
-                  icon="ℹ️"
-                />
+                <NavLink
+                  to="/"
+                  end
+                  className={({ isActive }) =>
+                    [
+                      "w-full flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-sm",
+                      isActive
+                        ? "bg-sky-50 border-sky-200 text-sky-800"
+                        : "bg-white border-slate-200 hover:bg-slate-50",
+                    ].join(" ")
+                  }
+                >
+                  <span className="shrink-0">🏠</span>
+                  <span className="truncate">Tableau de bord</span>
+                </NavLink>
+                <NavLink
+                  to="/config"
+                  className={({ isActive }) =>
+                    [
+                      "w-full flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-sm",
+                      isActive
+                        ? "bg-sky-50 border-sky-200 text-sky-800"
+                        : "bg-white border-slate-200 hover:bg-slate-50",
+                    ].join(" ")
+                  }
+                >
+                  <span className="shrink-0">🛠️</span>
+                  <span className="truncate">Éditeur de configuration</span>
+                </NavLink>
+                <NavLink
+                  to="/logs"
+                  className={({ isActive }) =>
+                    [
+                      "w-full flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-sm",
+                      isActive
+                        ? "bg-sky-50 border-sky-200 text-sky-800"
+                        : "bg-white border-slate-200 hover:bg-slate-50",
+                    ].join(" ")
+                  }
+                >
+                  <span className="shrink-0">📜</span>
+                  <span className="truncate">Journaux</span>
+                </NavLink>
+                <NavLink
+                  to="/about"
+                  className={({ isActive }) =>
+                    [
+                      "w-full flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-sm",
+                      isActive
+                        ? "bg-sky-50 border-sky-200 text-sky-800"
+                        : "bg-white border-slate-200 hover:bg-slate-50",
+                    ].join(" ")
+                  }
+                >
+                  <span className="shrink-0">ℹ️</span>
+                  <span className="truncate">À propos</span>
+                </NavLink>
               </nav>
             </div>
           </aside>
@@ -84,70 +116,15 @@ export default function App() {
               sidebarOpen ? "md:col-span-9 lg:col-span-10" : "md:col-span-11",
             ].join(" ")}
           >
-            {active === "dashboard" && <Dashboard />}
-            {active === "config" && <ConfigEditor />}
-            {active === "logs" && <LogsStub />}
-            {active === "about" && <AboutStub />}
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/config" element={<ConfigEditor />} />
+              <Route path="/logs" element={<LogsStub />} />
+              <Route path="/about" element={<AboutStub />} />
+            </Routes>
           </main>
         </div>
       </div>
     </div>
-  );
-}
-
-/* ===== Petits composants ===== */
-
-function NavItem({
-  label,
-  icon,
-  active,
-  onClick,
-}: {
-  label: string;
-  icon?: string;
-  active?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={[
-        "w-full flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-sm",
-        active
-          ? "bg-sky-50 border-sky-200 text-sky-800"
-          : "bg-white border-slate-200 hover:bg-slate-50",
-      ].join(" ")}
-    >
-      <span className="shrink-0">{icon}</span>
-      <span className="truncate">{label}</span>
-    </button>
-  );
-}
-
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="bg-white border rounded-xl shadow-sm p-4">
-      <h2 className="text-base font-semibold mb-2">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-
-function LogsStub() {
-  return (
-    <Card title="Journaux">
-      <p className="text-sm text-slate-600">Ici tu pourras afficher des logs globaux.</p>
-    </Card>
-  );
-}
-
-function AboutStub() {
-  return (
-    <Card title="À propos">
-      <p className="text-sm text-slate-600">
-        Petite UI Tailwind. Menu latéral repliable, barre de titre collante, cartes et ombres.
-      </p>
-    </Card>
   );
 }
