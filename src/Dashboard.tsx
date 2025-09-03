@@ -62,7 +62,7 @@ export function Dashboard() {
   return (
     <div className="space-y-4">
       {/* Carte statut agent */}
-      <section className="bg-white border rounded-xl shadow-sm p-4">
+      <section className="bg-white/80 backdrop-blur rounded-xl shadow-sm ring-1 ring-slate-200 p-4">
         <h2 className="text-base font-semibold mb-2">Statut de l'agent</h2>
         <p className="text-sm text-slate-600 flex items-center gap-2">
           Connexion :{" "}
@@ -75,7 +75,7 @@ export function Dashboard() {
       </section>
 
       {/* Carte actions */}
-      <section className="bg-white border rounded-xl shadow-sm p-4 space-y-3">
+      <section className="bg-white/80 backdrop-blur rounded-xl shadow-sm ring-1 ring-slate-200 p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">Ressources</h2>
           <div className="text-sm text-slate-600">
@@ -110,7 +110,7 @@ export function Dashboard() {
       </section>
 
       {/* Carte logs */}
-      <section className="bg-white border rounded-xl shadow-sm p-4">
+      <section className="bg-white/80 backdrop-blur rounded-xl shadow-sm ring-1 ring-slate-200 p-4">
         <h2 className="text-base font-semibold mb-2">Logs WebSocket</h2>
         <ul className="max-h-60 overflow-auto text-xs font-mono text-slate-700 space-y-1">
           {log.map((l, i) => (

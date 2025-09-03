@@ -9,7 +9,7 @@
 /* ---------- Composants ---------- */
 @layer components {
   /* Cartes / panneaux */
-  .card { @apply bg-white border border-gray-200 rounded-xl shadow-sm; }
+  .card { @apply bg-white/80 backdrop-blur rounded-xl shadow-sm ring-1 ring-slate-200; }
   .card-section { @apply border border-gray-200 rounded-lg p-3 bg-white shadow-sm; }
   .toolbar { @apply flex items-center gap-2; }
 
