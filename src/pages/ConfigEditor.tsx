@@ -7,7 +7,7 @@ import {
   cmdPatchConfig,
   cmdScreenshot,
   sendCommand, // pour save_template (optionnel)
-} from "./api";
+} from "../api";
 import * as YAML from "js-yaml";
 
 /** Types alignés sur ton YAML */

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { type Item, searchItems, getItemsByIds, loadSelection, saveSelection } from "../api";
 
 type Props = {
@@ -11,7 +11,7 @@ type Props = {
 
 const cx = (...c: Array<string | false | null | undefined>) => c.filter(Boolean).join(" ");
 
-export default function RessourcesPicker({
+export default function ResourcePicker({
   limit = 20,
   defaultSelectedIds = [],
   onChangeSelected,
@@ -31,7 +31,7 @@ export default function RessourcesPicker({
       const m = new Map<number, Item>();
       items.forEach((it) => m.set(it.id, it));
       setSelectedMap(m);
-      props.onChangeSelected?.(Array.from(m.values()));
+      onChangeSelected?.(Array.from(m.values()));
     } catch (e) {
       console.error("Reload selection failed:", e);
       // Optionnel: toast UI
