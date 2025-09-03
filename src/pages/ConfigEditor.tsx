@@ -404,7 +404,7 @@ export default function ConfigEditor() {
       setBusy(false);
     }
   }
-  function onTemplateCropped(dataUrl: string, naturalRect: { x: number; y: number; w: number; h: number }) {
+  function onTemplateCropped(dataUrl: string) {
     if (!cropForTemplate) return;
     setCropResult(dataUrl);
     const name = cropForTemplate;
@@ -828,7 +828,7 @@ export default function ConfigEditor() {
             setCropImg("");
             setCropResult("");
           }}
-          onCropped={(dataUrl, rect) => onTemplateCropped(dataUrl, rect)}
+            onCropped={(dataUrl) => onTemplateCropped(dataUrl)}
           onDownload={() => {
             const fn = suggestedFilename || `${cropForTemplate}.png`;
             if (cropResult) downloadDataUrl(fn, cropResult);
