@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { NavLink, Routes, Route, useLocation } from "react-router-dom";
-import ConfigEditor from "./ConfigEditor";
-import { Dashboard } from "./Dashboard";
-import LogsStub from "./LogsStub";
-import AboutStub from "./AboutStub";
+import ConfigEditor from "./pages/ConfigEditor";
+import Dashboard from "./pages/Dashboard";
+import Logs from "./pages/Logs";
+import About from "./pages/About";
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -116,8 +116,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/config" element={<ConfigEditor />} />
-            <Route path="/logs" element={<LogsStub />} />
-            <Route path="/about" element={<AboutStub />} />
+            <Route path="/logs" element={<Logs />} />
+            <Route path="/about" element={<About />} />
           </Routes>
         </main>
       </div>

@@ -1,27 +1,24 @@
-import { useEffect, useState, useMemo } from "react";
-import { makeUIWebSocket, sendCommand } from "./api";
-import RessourcesPicker from "./components/RessourcesPicker";
-import type { Item } from "./api"; // <- assure-toi que Item est exporté depuis api.ts
+import { useEffect, useState } from "react";
+import { makeUIWebSocket, sendCommand } from "../api";
+import type { Item } from "../api";
+import ResourcePicker from "../components/ResourcePicker";
+import Card from "../components/Card";
 
 const TOKEN = "change-me";
 
-
-export function Dashboard() {
+export default function Dashboard() {
   const [agentConnected, setAgentConnected] = useState(false);
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState<string[]>([]);
-
-   // Sélection hoistée au parent
   const [selected, setSelected] = useState<Item[]>([]);
-  const selectedIds = useMemo(() => selected.map((it) => it.id), [selected]);
-
 
   // WebSocket pour suivre le statut de l’agent
   useEffect(() => {
     const ws = makeUIWebSocket("/ws/ui", {
-      onMessage: (m: any) => {
-        if (m.type === "agent_status") {
-          setAgentConnected(!!m.connected);
+      onMessage: (m: unknown) => {
+        const data = m as { type?: string; connected?: boolean };
+        if (data.type === "agent_status") {
+          setAgentConnected(!!data.connected);
         }
         setLog((l) => [JSON.stringify(m), ...l].slice(0, 100));
       },
@@ -29,7 +26,6 @@ export function Dashboard() {
     return () => ws.close();
   }, []);
 
-  
   function buildStartArgs(items: Item[]) {
     return {
       // Si l’ordre de la sélection est important, on l’encode explicitement
@@ -49,11 +45,11 @@ export function Dashboard() {
     setBusy(true);
     try {
       const args = buildStartArgs(selected);
-      console.log(args)
       await sendCommand("start_script", args, TOKEN);
       alert("🚀 Script démarré !");
-    } catch (err: any) {
-      alert("Erreur: " + err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      alert("Erreur: " + message);
     } finally {
       setBusy(false);
     }
@@ -62,7 +58,7 @@ export function Dashboard() {
   return (
     <div className="space-y-4">
       {/* Carte statut agent */}
-      <section className="bg-white/80 backdrop-blur rounded-xl shadow-sm ring-1 ring-slate-200 p-4">
+      <Card>
         <h2 className="text-base font-semibold mb-2">Statut de l'agent</h2>
         <p className="text-sm text-slate-600 flex items-center gap-2">
           Connexion :{" "}
@@ -72,10 +68,10 @@ export function Dashboard() {
             <span className="text-red-600">❌ Déconnecté</span>
           )}
         </p>
-      </section>
+      </Card>
 
       {/* Carte actions */}
-      <section className="bg-white/80 backdrop-blur rounded-xl shadow-sm ring-1 ring-slate-200 p-4 space-y-3">
+      <Card className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">Ressources</h2>
           <div className="text-sm text-slate-600">
@@ -83,7 +79,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        <RessourcesPicker
+        <ResourcePicker
           limit={24}
           // Le composant appelle onChangeSelected:
           // - à chaque (dé)sélection
@@ -107,10 +103,10 @@ export function Dashboard() {
             ▶ Démarrer le script
           </button>
         </div>
-      </section>
+      </Card>
 
       {/* Carte logs */}
-      <section className="bg-white/80 backdrop-blur rounded-xl shadow-sm ring-1 ring-slate-200 p-4">
+      <Card>
         <h2 className="text-base font-semibold mb-2">Logs WebSocket</h2>
         <ul className="max-h-60 overflow-auto text-xs font-mono text-slate-700 space-y-1">
           {log.map((l, i) => (
@@ -119,7 +115,8 @@ export function Dashboard() {
             </li>
           ))}
         </ul>
-      </section>
+      </Card>
     </div>
   );
 }
+
