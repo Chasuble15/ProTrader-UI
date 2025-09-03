@@ -168,3 +168,45 @@ export async function saveSelection(ids: number[]): Promise<{ ok: boolean; count
   );
   return data as { ok: boolean; count: number };
 }
+
+// PRICES -------------------------------------------------------------------
+
+export type HdvResource = {
+  slug: string;
+  points: number;
+  last_seen: string;
+  last_prices: Record<string, { price: number; datetime: string }>;
+};
+
+export async function listHdvResources(limit = 1000, qty?: string): Promise<HdvResource[]> {
+  const url = new URL("/api/hdv/resources", API_BASE);
+  url.searchParams.set("limit", String(limit));
+  if (qty) url.searchParams.set("qty", qty);
+  const data = await fetchJSON(url.toString());
+  return (data?.resources ?? []) as HdvResource[];
+}
+
+export type TimeseriesPoint = { t: string; value?: number; price?: number };
+export type TimeseriesSeries = {
+  slug: string;
+  qty: string;
+  bucket: string;
+  agg: string | null;
+  points: TimeseriesPoint[];
+};
+
+export async function getHdvTimeseries(
+  slugs: string[],
+  qty?: string,
+  bucket = "day",
+  agg = "avg"
+): Promise<TimeseriesSeries[]> {
+  if (!slugs.length) return [];
+  const url = new URL("/api/hdv/timeseries", API_BASE);
+  url.searchParams.set("slugs", slugs.join(","));
+  if (qty) url.searchParams.set("qty", qty);
+  if (bucket) url.searchParams.set("bucket", bucket);
+  if (agg) url.searchParams.set("agg", agg);
+  const data = await fetchJSON(url.toString());
+  return (data?.series ?? []) as TimeseriesSeries[];
+}

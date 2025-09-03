@@ -4,12 +4,14 @@ import ConfigEditor from "./pages/ConfigEditor";
 import Dashboard from "./pages/Dashboard";
 import Logs from "./pages/Logs";
 import About from "./pages/About";
+import Prices from "./pages/Prices";
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const titles: Record<string, string> = {
     "/": "Tableau de bord",
+    "/prices": "Historique des prix",
     "/config": "Éditeur de configuration",
     "/logs": "Journaux",
     "/about": "À propos",
@@ -66,6 +68,20 @@ export default function App() {
                 <span className="truncate">Tableau de bord</span>
               </NavLink>
               <NavLink
+                to="/prices"
+                className={({ isActive }: { isActive: boolean }) =>
+                  [
+                    "flex items-center gap-2 px-3 py-2 rounded-lg border text-sm",
+                    isActive
+                      ? "bg-sky-50 border-sky-200 text-sky-800"
+                      : "bg-white border-slate-200 hover:bg-slate-50",
+                  ].join(" ")
+                }
+              >
+                <span className="shrink-0">📈</span>
+                <span className="truncate">Prix</span>
+              </NavLink>
+              <NavLink
                 to="/config"
                 className={({ isActive }: { isActive: boolean }) =>
                   [
@@ -115,6 +131,7 @@ export default function App() {
         <main className="flex-1 overflow-y-auto p-4">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/prices" element={<Prices />} />
             <Route path="/config" element={<ConfigEditor />} />
             <Route path="/logs" element={<Logs />} />
             <Route path="/about" element={<About />} />
