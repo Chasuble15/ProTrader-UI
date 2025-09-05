@@ -23,6 +23,7 @@ export default function Prices() {
   const [resources, setResources] = useState<HdvResource[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [series, setSeries] = useState<TimeseriesSeries[]>([]);
+  const [qty, setQty] = useState("x1");
 
   useEffect(() => {
     (async () => {
@@ -42,14 +43,14 @@ export default function Prices() {
     }
     (async () => {
       try {
-        const ts = await getHdvTimeseries(selected, "x1", "day", "avg");
+        const ts = await getHdvTimeseries(selected, qty, "day", "avg");
         setSeries(ts);
       } catch (e) {
         console.error("Failed to load timeseries", e);
         setSeries([]);
       }
     })();
-  }, [selected]);
+  }, [selected, qty]);
 
   const chartData = {
     datasets: series.map((s, idx) => ({
@@ -104,6 +105,21 @@ export default function Prices() {
             <span>{r.slug}</span>
           </label>
         ))}
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2">
+          Quantité
+          <select
+            value={qty}
+            onChange={(e) => setQty(e.target.value)}
+            className="border rounded p-1"
+          >
+            <option value="x1">x1</option>
+            <option value="x10">x10</option>
+            <option value="x100">x100</option>
+            <option value="x1000">x1000</option>
+          </select>
+        </label>
       </div>
       <div className="border rounded-xl p-4 bg-white">
         {series.length === 0 ? (
