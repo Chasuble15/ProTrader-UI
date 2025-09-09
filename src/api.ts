@@ -169,6 +169,25 @@ export async function saveSelection(ids: number[]): Promise<{ ok: boolean; count
   return data as { ok: boolean; count: number };
 }
 
+export async function loadAutoMode(): Promise<boolean> {
+  const url = new URL("/api/auto_mode", API_BASE);
+  const data = await fetchJSON(url.toString());
+  return !!data?.auto;
+}
+
+export async function saveAutoMode(auto: boolean): Promise<{ ok: boolean }> {
+  const url = new URL("/api/auto_mode", API_BASE);
+  const data = await fetchJSON(
+    url.toString(),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ auto }),
+    }
+  );
+  return data as { ok: boolean };
+}
+
 // PRICES -------------------------------------------------------------------
 
 export type HdvResource = {
