@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, Routes, Route, useLocation } from "react-router-dom";
 import ConfigEditor from "./pages/ConfigEditor";
-import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
 import Logs from "./pages/Logs";
 import About from "./pages/About";
 import Prices from "./pages/Prices";
@@ -10,7 +10,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const titles: Record<string, string> = {
-    "/": "Tableau de bord",
+    "/": "Accueil",
     "/prices": "Historique des prix",
     "/config": "Éditeur de configuration",
     "/logs": "Journaux",
@@ -65,7 +65,7 @@ export default function App() {
                 }
               >
                 <span className="shrink-0">🏠</span>
-                <span className="truncate">Tableau de bord</span>
+                <span className="truncate">Accueil</span>
               </NavLink>
               <NavLink
                 to="/prices"
@@ -130,7 +130,7 @@ export default function App() {
         {/* ----- MAIN CONTENT ----- */}
         <main className="flex-1 overflow-y-auto p-4">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Home />} />
             <Route path="/prices" element={<Prices />} />
             <Route path="/config" element={<ConfigEditor />} />
             <Route path="/logs" element={<Logs />} />

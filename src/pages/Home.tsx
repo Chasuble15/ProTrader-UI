@@ -1,16 +1,18 @@
-import { useEffect, useState } from "react";
-import { makeUIWebSocket, sendCommand } from "../api";
+import { useEffect, useState, useRef } from "react";
+import { makeUIWebSocket, sendCommand, loadAutoMode, saveAutoMode } from "../api";
 import type { Item } from "../api";
 import ResourcePicker from "../components/ResourcePicker";
 import Card from "../components/Card";
 
 const TOKEN = "change-me";
 
-export default function Dashboard() {
+export default function Home() {
   const [agentConnected, setAgentConnected] = useState(false);
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState<string[]>([]);
   const [selected, setSelected] = useState<Item[]>([]);
+  const [autoMode, setAutoMode] = useState(false);
+  const autoStartedRef = useRef(false);
 
   // WebSocket pour suivre le statut de l’agent
   useEffect(() => {
@@ -25,6 +27,16 @@ export default function Dashboard() {
     });
     return () => ws.close();
   }, []);
+
+  useEffect(() => {
+    loadAutoMode().then((v) => setAutoMode(!!v)).catch(() => {});
+  }, []);
+
+  async function toggleAutoMode() {
+    const v = !autoMode;
+    setAutoMode(v);
+    try { await saveAutoMode(v); } catch {}
+  }
 
   function buildStartArgs(items: Item[]) {
     return {
@@ -41,19 +53,27 @@ export default function Dashboard() {
     };
   }
 
-  async function onStartScript() {
+  async function onStartScript(auto = false) {
     setBusy(true);
     try {
       const args = buildStartArgs(selected);
       await sendCommand("start_script", args, TOKEN);
-      alert("🚀 Script démarré !");
+      if (!auto) alert("🚀 Script démarré !");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      alert("Erreur: " + message);
+      if (!auto) alert("Erreur: " + message);
     } finally {
       setBusy(false);
     }
   }
+
+  useEffect(() => {
+    if (agentConnected && autoMode && selected.length > 0 && !busy && !autoStartedRef.current) {
+      autoStartedRef.current = true;
+      onStartScript(true);
+    }
+    if (!agentConnected) autoStartedRef.current = false;
+  }, [agentConnected, autoMode, selected, busy]);
 
   return (
     <div className="space-y-4">
@@ -68,6 +88,15 @@ export default function Dashboard() {
             <span className="text-red-600">❌ Déconnecté</span>
           )}
         </p>
+        <label className="mt-2 flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={autoMode}
+            onChange={toggleAutoMode}
+            className="h-4 w-4"
+          />
+          <span>Mode auto</span>
+        </label>
       </Card>
 
       {/* Carte actions */}
