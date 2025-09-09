@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { makeUIWebSocket, sendCommand, loadAutoMode, saveAutoMode } from "../api";
 import type { Item } from "../api";
 import ResourcePicker from "../components/ResourcePicker";
@@ -12,7 +12,6 @@ export default function Home() {
   const [log, setLog] = useState<string[]>([]);
   const [selected, setSelected] = useState<Item[]>([]);
   const [autoMode, setAutoMode] = useState(false);
-  const autoStartedRef = useRef(false);
 
   // WebSocket pour suivre le statut de l’agent
   useEffect(() => {
@@ -53,27 +52,19 @@ export default function Home() {
     };
   }
 
-  async function onStartScript(auto = false) {
+  async function onStartScript() {
     setBusy(true);
     try {
       const args = buildStartArgs(selected);
       await sendCommand("start_script", args, TOKEN);
-      if (!auto) alert("🚀 Script démarré !");
+      alert("🚀 Script démarré !");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      if (!auto) alert("Erreur: " + message);
+      alert("Erreur: " + message);
     } finally {
       setBusy(false);
     }
   }
-
-  useEffect(() => {
-    if (agentConnected && autoMode && selected.length > 0 && !busy && !autoStartedRef.current) {
-      autoStartedRef.current = true;
-      onStartScript(true);
-    }
-    if (!agentConnected) autoStartedRef.current = false;
-  }, [agentConnected, autoMode, selected, busy]);
 
   return (
     <div className="space-y-4">
