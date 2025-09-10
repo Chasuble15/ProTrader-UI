@@ -233,3 +233,28 @@ export async function getHdvTimeseries(
   const data = await fetchJSON(url.toString());
   return (data?.series ?? []) as TimeseriesSeries[];
 }
+
+export type HdvPriceStat = {
+  slug: string;
+  qty: string;
+  stat: string;
+  value: number | null;
+  points: number;
+};
+
+export async function getHdvPriceStat(
+  slug: string,
+  qty: string,
+  stat: "avg" | "median",
+  start?: string,
+  end?: string,
+): Promise<HdvPriceStat> {
+  const url = new URL("/api/hdv/price_stat", API_BASE);
+  url.searchParams.set("slug", slug);
+  url.searchParams.set("qty", qty);
+  url.searchParams.set("stat", stat);
+  if (start) url.searchParams.set("date_from", new Date(start).toISOString());
+  if (end) url.searchParams.set("date_to", new Date(end).toISOString());
+  const data = await fetchJSON(url.toString());
+  return data as HdvPriceStat;
+}

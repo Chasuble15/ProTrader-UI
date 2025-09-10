@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   listHdvResources,
   getHdvTimeseries,
+  getHdvPriceStat,
   type HdvResource,
   type TimeseriesSeries,
 } from "../api";
@@ -42,6 +43,10 @@ export default function Prices() {
   const [qty, setQty] = useState(() => localStorage.getItem("prices.qty") ?? "x1");
   const [start, setStart] = useState<string>("");
   const [end, setEnd] = useState<string>("");
+  const [showAvg, setShowAvg] = useState(false);
+  const [showMedian, setShowMedian] = useState(false);
+  const [avgValues, setAvgValues] = useState<Record<string, number | null>>({});
+  const [medianValues, setMedianValues] = useState<Record<string, number | null>>({});
 
   useEffect(() => {
     (async () => {
@@ -71,6 +76,50 @@ export default function Prices() {
   }, [selected, qty, start, end]);
 
   useEffect(() => {
+    if (!showAvg || selected.length === 0) {
+      setAvgValues({});
+      return;
+    }
+    (async () => {
+      try {
+        const stats = await Promise.all(
+          selected.map((slug) =>
+            getHdvPriceStat(slug, qty, "avg", start || undefined, end || undefined)
+          )
+        );
+        const map: Record<string, number | null> = {};
+        for (const s of stats) map[s.slug] = s.value ?? null;
+        setAvgValues(map);
+      } catch (e) {
+        console.error("Failed to load avg stats", e);
+        setAvgValues({});
+      }
+    })();
+  }, [showAvg, selected, qty, start, end]);
+
+  useEffect(() => {
+    if (!showMedian || selected.length === 0) {
+      setMedianValues({});
+      return;
+    }
+    (async () => {
+      try {
+        const stats = await Promise.all(
+          selected.map((slug) =>
+            getHdvPriceStat(slug, qty, "median", start || undefined, end || undefined)
+          )
+        );
+        const map: Record<string, number | null> = {};
+        for (const s of stats) map[s.slug] = s.value ?? null;
+        setMedianValues(map);
+      } catch (e) {
+        console.error("Failed to load median stats", e);
+        setMedianValues({});
+      }
+    })();
+  }, [showMedian, selected, qty, start, end]);
+
+  useEffect(() => {
     localStorage.setItem("prices.selected", JSON.stringify(selected));
   }, [selected]);
 
@@ -78,21 +127,64 @@ export default function Prices() {
     localStorage.setItem("prices.qty", qty);
   }, [qty]);
 
-  const chartData = {
-    datasets: series.map((s, idx) => ({
-      label: s.slug,
-      data: s.points.map((p) => ({
-        x: parseTimestamp(p.t),
-        y: p.price ?? p.value ?? 0,
-      })),
-      borderColor: COLORS[idx % COLORS.length],
-      backgroundColor: COLORS[idx % COLORS.length],
-      tension: 0.1,
-    })),
-  };
-
   const startMs = start ? new Date(start).getTime() : undefined;
   const endMs = end ? new Date(end).getTime() : undefined;
+  const allTimes = series.flatMap((s) => s.points.map((p) => parseTimestamp(p.t)));
+  const minTime = startMs ?? (allTimes.length ? Math.min(...allTimes) : undefined);
+  const maxTime = endMs ?? (allTimes.length ? Math.max(...allTimes) : undefined);
+
+  const datasets = series.map((s, idx) => ({
+    label: s.slug,
+    data: s.points.map((p) => ({
+      x: parseTimestamp(p.t),
+      y: p.price ?? p.value ?? 0,
+    })),
+    borderColor: COLORS[idx % COLORS.length],
+    backgroundColor: COLORS[idx % COLORS.length],
+    tension: 0.1,
+  }));
+
+  if (showAvg) {
+    Object.entries(avgValues).forEach(([slug, value]) => {
+      if (value == null || minTime === undefined || maxTime === undefined) return;
+      const idx = selected.indexOf(slug);
+      const color = COLORS[(idx >= 0 ? idx : 0) % COLORS.length];
+      datasets.push({
+        label: `${slug} moyenne`,
+        data: [
+          { x: minTime, y: value },
+          { x: maxTime, y: value },
+        ],
+        borderColor: color,
+        backgroundColor: color,
+        borderDash: [5, 5],
+        pointRadius: 0,
+        tension: 0,
+      });
+    });
+  }
+
+  if (showMedian) {
+    Object.entries(medianValues).forEach(([slug, value]) => {
+      if (value == null || minTime === undefined || maxTime === undefined) return;
+      const idx = selected.indexOf(slug);
+      const color = COLORS[(idx >= 0 ? idx : 0) % COLORS.length];
+      datasets.push({
+        label: `${slug} médiane`,
+        data: [
+          { x: minTime, y: value },
+          { x: maxTime, y: value },
+        ],
+        borderColor: color,
+        backgroundColor: color,
+        borderDash: [2, 2],
+        pointRadius: 0,
+        tension: 0,
+      });
+    });
+  }
+
+  const chartData = { datasets };
 
   const chartOptions = {
     parsing: false,
@@ -103,8 +195,7 @@ export default function Prices() {
         min: startMs,
         max: endMs,
         ticks: {
-          callback: (value: number) =>
-            new Date(value).toLocaleString(undefined, { timeZone: "UTC" }),
+          callback: (value: number) => new Date(value).toLocaleString(),
         },
       },
       y: {
@@ -118,9 +209,7 @@ export default function Prices() {
       tooltip: {
         callbacks: {
           title: (items: TooltipItem<"line">[]) =>
-            new Date(items[0].parsed.x as number).toLocaleString(undefined, {
-              timeZone: "UTC",
-            }),
+            new Date(items[0].parsed.x as number).toLocaleString(),
         },
       },
     },
@@ -148,7 +237,7 @@ export default function Prices() {
           </label>
         ))}
       </div>
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-4 text-sm">
         <label className="flex items-center gap-2">
           Quantité
           <select
@@ -161,6 +250,22 @@ export default function Prices() {
             <option value="x100">x100</option>
             <option value="x1000">x1000</option>
           </select>
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={showAvg}
+            onChange={(e) => setShowAvg(e.target.checked)}
+          />
+          <span>Moyenne</span>
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={showMedian}
+            onChange={(e) => setShowMedian(e.target.checked)}
+          />
+          <span>Médiane</span>
         </label>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-sm">
