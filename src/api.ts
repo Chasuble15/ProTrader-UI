@@ -218,7 +218,9 @@ export async function getHdvTimeseries(
   slugs: string[],
   qty?: string,
   bucket = "day",
-  agg = "avg"
+  agg = "avg",
+  start?: string,
+  end?: string,
 ): Promise<TimeseriesSeries[]> {
   if (!slugs.length) return [];
   const url = new URL("/api/hdv/timeseries", API_BASE);
@@ -226,6 +228,8 @@ export async function getHdvTimeseries(
   if (qty) url.searchParams.set("qty", qty);
   if (bucket) url.searchParams.set("bucket", bucket);
   if (agg) url.searchParams.set("agg", agg);
+  if (start) url.searchParams.set("start", new Date(start).toISOString());
+  if (end) url.searchParams.set("end", new Date(end).toISOString());
   const data = await fetchJSON(url.toString());
   return (data?.series ?? []) as TimeseriesSeries[];
 }

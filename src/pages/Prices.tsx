@@ -12,6 +12,7 @@ import {
   LineElement,
   Tooltip,
   Legend,
+  type TooltipItem,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
@@ -24,6 +25,8 @@ export default function Prices() {
   const [selected, setSelected] = useState<string[]>([]);
   const [series, setSeries] = useState<TimeseriesSeries[]>([]);
   const [qty, setQty] = useState("x1");
+  const [start, setStart] = useState<string>("");
+  const [end, setEnd] = useState<string>("");
 
   useEffect(() => {
     (async () => {
@@ -43,14 +46,14 @@ export default function Prices() {
     }
     (async () => {
       try {
-        const ts = await getHdvTimeseries(selected, qty, "day", "avg");
+        const ts = await getHdvTimeseries(selected, qty, "day", "avg", start || undefined, end || undefined);
         setSeries(ts);
       } catch (e) {
         console.error("Failed to load timeseries", e);
         setSeries([]);
       }
     })();
-  }, [selected, qty]);
+  }, [selected, qty, start, end]);
 
   const chartData = {
     datasets: series.map((s, idx) => ({
@@ -65,14 +68,19 @@ export default function Prices() {
     })),
   };
 
+  const startMs = start ? new Date(start).getTime() : undefined;
+  const endMs = end ? new Date(end).getTime() : undefined;
+
   const chartOptions = {
     parsing: false,
     responsive: true,
     scales: {
       x: {
         type: "linear" as const,
+        min: startMs,
+        max: endMs,
         ticks: {
-          callback: (value: number) => new Date(value).toLocaleDateString(),
+          callback: (value: number) => new Date(value).toLocaleString(),
         },
       },
       y: {
@@ -81,6 +89,12 @@ export default function Prices() {
     },
     plugins: {
       legend: { position: "bottom" as const },
+      tooltip: {
+        callbacks: {
+          title: (items: TooltipItem<"line">[]) =>
+            new Date(items[0].parsed.x as number).toLocaleString(),
+        },
+      },
     },
   };
 
@@ -119,6 +133,26 @@ export default function Prices() {
             <option value="x100">x100</option>
             <option value="x1000">x1000</option>
           </select>
+        </label>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <label className="flex items-center gap-2">
+          De
+          <input
+            type="datetime-local"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+            className="border rounded p-1"
+          />
+        </label>
+        <label className="flex items-center gap-2">
+          À
+          <input
+            type="datetime-local"
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+            className="border rounded p-1"
+          />
         </label>
       </div>
       <div className="border rounded-xl p-4 bg-white">
