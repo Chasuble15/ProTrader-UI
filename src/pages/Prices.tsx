@@ -20,6 +20,14 @@ ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend);
 
 const COLORS = ["#3b82f6", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6"];
 
+const parseTimestamp = (t: string): number => {
+  const n = Number(t);
+  if (!Number.isNaN(n)) {
+    return n < 1e12 ? n * 1000 : n;
+  }
+  return Date.parse(t.endsWith("Z") ? t : `${t}Z`);
+};
+
 export default function Prices() {
   const [resources, setResources] = useState<HdvResource[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
@@ -59,7 +67,7 @@ export default function Prices() {
     datasets: series.map((s, idx) => ({
       label: s.slug,
       data: s.points.map((p) => ({
-        x: new Date(p.t).getTime(),
+        x: parseTimestamp(p.t),
         y: p.price ?? p.value ?? 0,
       })),
       borderColor: COLORS[idx % COLORS.length],
@@ -80,11 +88,14 @@ export default function Prices() {
         min: startMs,
         max: endMs,
         ticks: {
-          callback: (value: number) => new Date(value).toLocaleString(),
+          callback: (value: number) =>
+            new Date(value).toLocaleString(undefined, { timeZone: "UTC" }),
         },
       },
       y: {
         type: "linear" as const,
+        min: 0,
+        beginAtZero: true,
       },
     },
     plugins: {
@@ -92,7 +103,9 @@ export default function Prices() {
       tooltip: {
         callbacks: {
           title: (items: TooltipItem<"line">[]) =>
-            new Date(items[0].parsed.x as number).toLocaleString(),
+            new Date(items[0].parsed.x as number).toLocaleString(undefined, {
+              timeZone: "UTC",
+            }),
         },
       },
     },
