@@ -30,9 +30,16 @@ const parseTimestamp = (t: string): number => {
 
 export default function Prices() {
   const [resources, setResources] = useState<HdvResource[]>([]);
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("prices.selected");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [series, setSeries] = useState<TimeseriesSeries[]>([]);
-  const [qty, setQty] = useState("x1");
+  const [qty, setQty] = useState(() => localStorage.getItem("prices.qty") ?? "x1");
   const [start, setStart] = useState<string>("");
   const [end, setEnd] = useState<string>("");
 
@@ -62,6 +69,14 @@ export default function Prices() {
       }
     })();
   }, [selected, qty, start, end]);
+
+  useEffect(() => {
+    localStorage.setItem("prices.selected", JSON.stringify(selected));
+  }, [selected]);
+
+  useEffect(() => {
+    localStorage.setItem("prices.qty", qty);
+  }, [qty]);
 
   const chartData = {
     datasets: series.map((s, idx) => ({
